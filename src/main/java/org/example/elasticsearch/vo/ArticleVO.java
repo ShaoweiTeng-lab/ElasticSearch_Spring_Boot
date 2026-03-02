@@ -1,5 +1,6 @@
 package org.example.elasticsearch.vo;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -8,6 +9,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Data
 @Document(indexName = "article")
+@Builder
 public class ArticleVO {
     @Id
     private String id;

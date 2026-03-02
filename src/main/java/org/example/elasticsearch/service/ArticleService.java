@@ -4,13 +4,16 @@ import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import lombok.RequiredArgsConstructor;
 import org.example.elasticsearch.common.response.PageResponse;
+import org.example.elasticsearch.common.response.ResultResponse;
 import org.example.elasticsearch.repository.ArticleRepository;
+import org.example.elasticsearch.req.CreateArticleReq;
+import org.example.elasticsearch.req.EditArticleReq;
 import org.example.elasticsearch.vo.ArticleVO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.List;
 
@@ -59,5 +62,44 @@ public class ArticleService {
                 .data(data)
                 .build();
 
+    }
+
+    public ResultResponse<String> createArticle(CreateArticleReq createArticleReq) {
+        ArticleVO article = ArticleVO.builder()
+                .title(createArticleReq.getTitle())
+                .content(createArticleReq.getContent())
+                .build();
+        elasticsearchOperations.save(article);
+       return ResultResponse.success("成功");
+    }
+
+    public ResultResponse<String> editArticle(EditArticleReq editArticleReq) {
+        String id = editArticleReq.getId();
+
+        // 先檢查是否存在
+        ArticleVO exist = elasticsearchOperations.get(id, ArticleVO.class);
+
+        if (ObjectUtils.isEmpty(exist)) {
+            return ResultResponse.fail(4001, "資料異常無法辨識");
+        }
+        ArticleVO article = ArticleVO.builder()
+                .id(editArticleReq.getId())
+                .title(editArticleReq.getTitle())
+                .content(editArticleReq.getContent())
+                .build();
+        elasticsearchOperations.save(article);
+        return ResultResponse.success("成功");
+    }
+
+    public ResultResponse<String> deleteArticle(String id) {
+
+        // 先檢查是否存在
+        ArticleVO exist = elasticsearchOperations.get(id, ArticleVO.class);
+
+        if (ObjectUtils.isEmpty(exist)) {
+            return ResultResponse.fail(4001, "資料不存在");
+        }
+        elasticsearchOperations.delete(id, ArticleVO.class);
+        return ResultResponse.success("成功");
     }
 }
