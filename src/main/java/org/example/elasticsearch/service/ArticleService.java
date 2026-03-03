@@ -12,10 +12,15 @@ import org.example.elasticsearch.vo.ArticleVO;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.query.HighlightQuery;
+import org.springframework.data.elasticsearch.core.query.highlight.Highlight;
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightField;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -42,16 +47,39 @@ public class ArticleService {
         int currentPage = (page < 1) ? 0 : page - 1;
         int pageSize = (size <= 0) ? 10 : size;
 
+        Highlight highlight = new Highlight(
+                List.of(
+                        new HighlightField("title"),
+                        new HighlightField("content")
+                )
+        );
+
+
         NativeQuery nativeQuery = NativeQuery.builder()
                 .withQuery(query)
                 .withPageable(PageRequest.of(currentPage, pageSize))
+                .withHighlightQuery(new HighlightQuery(highlight, ArticleVO.class))
                 .build();
 
         var searchHits = elasticsearchOperations.search(nativeQuery, ArticleVO.class);
 
-        List<ArticleVO> data = searchHits.stream()
-                .map(hit -> hit.getContent())
-                .toList();
+        List<ArticleVO> data = searchHits.stream().map(hit -> {
+
+            ArticleVO article = hit.getContent();
+
+            Map<String, List<String>> highlightFields = hit.getHighlightFields();
+            // 如果關鍵字 欄位 有值
+            if (highlightFields.containsKey("title")) {
+                article.setTitle(highlightFields.get("title").get(0));
+            }
+
+            if (highlightFields.containsKey("content")) {
+                article.setContent(highlightFields.get("content").get(0));
+            }
+
+            return article;
+
+        }).toList();
 
         long total = searchHits.getTotalHits();
 
