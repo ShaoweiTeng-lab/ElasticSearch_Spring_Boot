@@ -22,7 +22,7 @@ public class ArticleController {
     private final ArticleService articleService;
 
     @GetMapping()
-    public ResponseEntity<PageResponse<List<ArticleVO>>> findArticle(
+    public ResponseEntity<ResultResponse<PageResponse<List<ArticleVO>>>> findArticle(
             @RequestParam(name = "keyword", defaultValue = "", required = false) String keyword,
             @RequestParam(name = "page", defaultValue = "1", required = false) int page,
             @RequestParam(name = "size", defaultValue = "5", required = false) int size) {

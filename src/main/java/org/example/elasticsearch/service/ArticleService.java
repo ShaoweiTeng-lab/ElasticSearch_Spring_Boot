@@ -29,7 +29,7 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final ElasticsearchOperations elasticsearchOperations;
 
-    public PageResponse<List<ArticleVO>> searchArticle(String keyword, int page, int size) {
+    public ResultResponse<PageResponse<List<ArticleVO>>> searchArticle(String keyword, int page, int size) {
         boolean hasKeyword = keyword != null && !keyword.isBlank();
 
         Query query;
@@ -83,12 +83,12 @@ public class ArticleService {
 
         long total = searchHits.getTotalHits();
 
-        return PageResponse.<List<ArticleVO>>builder()
+        return ResultResponse.success(PageResponse.<List<ArticleVO>>builder()
                 .page(currentPage + 1)
                 .size(pageSize)
                 .total((int) total)
                 .data(data)
-                .build();
+                .build());
 
     }
 
@@ -98,7 +98,7 @@ public class ArticleService {
                 .content(createArticleReq.getContent())
                 .build();
         elasticsearchOperations.save(article);
-       return ResultResponse.success("成功");
+        return ResultResponse.success("成功");
     }
 
     public ResultResponse<String> editArticle(EditArticleReq editArticleReq) {
