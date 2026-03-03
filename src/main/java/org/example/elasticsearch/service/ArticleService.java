@@ -5,6 +5,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import lombok.RequiredArgsConstructor;
 import org.example.elasticsearch.common.response.PageResponse;
 import org.example.elasticsearch.common.response.ResultResponse;
+import org.example.elasticsearch.exception.BusinessException;
 import org.example.elasticsearch.repository.ArticleRepository;
 import org.example.elasticsearch.req.CreateArticleReq;
 import org.example.elasticsearch.req.EditArticleReq;
@@ -108,7 +109,7 @@ public class ArticleService {
         ArticleVO exist = elasticsearchOperations.get(id, ArticleVO.class);
 
         if (ObjectUtils.isEmpty(exist)) {
-            return ResultResponse.fail(4001, "資料異常無法辨識");
+            throw new BusinessException(4001, "資料不存在");
         }
         ArticleVO article = ArticleVO.builder()
                 .id(editArticleReq.getId())
@@ -125,7 +126,7 @@ public class ArticleService {
         ArticleVO exist = elasticsearchOperations.get(id, ArticleVO.class);
 
         if (ObjectUtils.isEmpty(exist)) {
-            return ResultResponse.fail(4001, "資料不存在");
+            throw new BusinessException(4001, "資料不存在");
         }
         elasticsearchOperations.delete(id, ArticleVO.class);
         return ResultResponse.success("成功");
